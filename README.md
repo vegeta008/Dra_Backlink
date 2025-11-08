@@ -1,14 +1,31 @@
-# Backlink Checker Automatizado
+# Domain Analyzer
 
-Un script de Python para encontrar posibles backlinks de uno o varios dominios utilizando el motor de búsqueda Bing. La herramienta simula ser un navegador real usando Selenium y automatiza la búsqueda a través de una lista de "dorks" comunes para maximizar los resultados.
+Una herramienta de reconocimiento de dominios en Python que combina dos funciones principales:
+1.  **Buscador de Backlinks:** Encuentra backlinks potenciales utilizando el motor de búsqueda Bing con una serie de dorks automatizados.
+2.  **Escáner de Wayback Machine:** Busca archivos históricos (como backups, logs, etc.) indexados en la Wayback Machine filtrando por extensiones de archivo.
+
+La herramienta está diseñada para ser no interactiva, modular y capaz de analizar un solo dominio o una lista de dominios de forma masiva.
+
+## Estructura de Archivos
+
+Todos los archivos de la herramienta y sus salidas se encuentran en la carpeta `recon/`.
+
+```
+recon/
+├── domain_analyzer.py       # El script principal
+├── requirements.txt         # Las dependencias del proyecto
+├── domains_to_scan.txt      # Un archivo de ejemplo para el análisis masivo
+└── example.com_analysis.txt # Un archivo de salida de ejemplo
+```
 
 ## Características
 
-- **Búsqueda Automatizada:** Itera automáticamente sobre una lista de 10 dorks de búsqueda efectivos para encontrar una amplia gama de backlinks.
-- **Análisis Masivo:** Escanea una lista de dominios desde un archivo de texto para un análisis eficiente a gran escala.
-- **Simulación de Navegador Real:** Utiliza Selenium y un navegador Chrome en modo headless para evitar bloqueos comunes de web scraping.
-- **Limpieza de URLs:** Decodifica y limpia las URLs de redirección de Bing para mostrar los enlaces de destino reales.
-- **Filtrado Inteligente:** Excluye automáticamente los dominios propios y los de Bing para una lista de resultados más limpia.
+- **Doble Funcionalidad:** Realiza tanto análisis de backlinks como escaneos de archivos históricos.
+- **Búsqueda Automatizada de Backlinks:** Itera automáticamente sobre una lista de 10 dorks de búsqueda efectivos.
+- **Análisis Masivo:** Escanea una lista de dominios desde un archivo de texto.
+- **Simulación de Navegador Real:** Utiliza Selenium para evitar bloqueos comunes.
+- **Salida Consolidada:** Guarda todos los resultados de un dominio en un único archivo de texto organizado por secciones.
+- **Configurable:** Permite ajustar el número de páginas a escanear y las extensiones de archivo a buscar.
 
 ## Requisitos
 
@@ -17,7 +34,10 @@ Un script de Python para encontrar posibles backlinks de uno o varios dominios u
 
 ## Instalación
 
-1.  **Clona o descarga este repositorio.**
+1.  **Navega a la carpeta `recon`:**
+    ```bash
+    cd recon
+    ```
 
 2.  **Crea un entorno virtual (recomendado):**
     ```bash
@@ -29,49 +49,47 @@ Un script de Python para encontrar posibles backlinks de uno o varios dominios u
     ```bash
     pip install -r requirements.txt
     ```
-    *(Nota: Primero necesitarás crear el archivo `requirements.txt` ejecutando `pip freeze > requirements.txt` después de instalar las librerías manualmente si aún no lo has hecho).*
-
 
 ## Uso
 
-La herramienta se puede utilizar de dos maneras:
+La herramienta se ejecuta desde la línea de comandos y requiere que especifiques el tipo de escaneo.
 
-### 1. Analizar un solo dominio
+### Argumentos Principales
 
-Proporciona el dominio como un argumento directo al script.
+-   `dominio` o `-f <archivo>`: El objetivo. Proporciona un solo dominio o un archivo con una lista de dominios (uno por línea).
+-   `--scan <modo>`: **(Obligatorio)** El tipo de análisis a realizar.
+    -   `backlinks`: Solo busca backlinks.
+    -   `wayback`: Solo busca en la Wayback Machine.
+    -   `all`: Realiza ambos análisis.
+-   `--pages <N>`: (Opcional) Para el escaneo de backlinks, define el número máximo de páginas a buscar por cada dork. **Por defecto es 10.**
+-   `--extensions <lista>`: (Opcional) Para el escaneo de Wayback, define las extensiones a buscar, separadas por comas. Por defecto es `.zip,.sql,.bak,.rar,.tar.gz,.7z,.old,.backup`.
 
-**Ejemplo:**
+### Ejemplos de Comandos
+
+**1. Escaneo de Backlinks para un solo dominio:**
 ```bash
-python backlink_checker.py dragonjar.org
+python domain_analyzer.py example.com --scan backlinks
 ```
 
-### 2. Analizar múltiples dominios desde un archivo
-
-Crea un archivo de texto (ej. `dominios.txt`) y añade un dominio por línea:
-
-**dominios.txt:**
-```
-dragonjar.org
-kaslhlatam.com
-google.com
-```
-
-Luego, ejecuta el script usando el flag `-f` o `--file`.
-
-**Ejemplo:**
+**2. Escaneo de Wayback para un solo dominio con extensiones personalizadas:**
 ```bash
-python backlink_checker.py -f dominios.txt
+python domain_analyzer.py example.com --scan wayback --extensions ".log,.config,.env"
 ```
 
-### Argumentos Adicionales
-
-- `--pages <N>`: Especifica el número de páginas de resultados a analizar para *cada dork*. El valor por defecto es 1. Aumentar este número puede dar más resultados, pero también hará que el script tarde más y aumente el riesgo de bloqueo.
-
-**Ejemplo:**
+**3. Escaneo completo para una lista de dominios en un archivo:**
 ```bash
-python backlink_checker.py -f dominios.txt --pages 3
+python domain_analyzer.py -f domains_to_scan.txt --scan all
 ```
 
-## Nota Importante sobre Web Scraping
+**4. Escaneo completo para una lista, buscando solo en las primeras 2 páginas de backlinks:**
+```bash
+python domain_analyzer.py -f domains_to_scan.txt --scan all --pages 2
+```
 
-Esta herramienta realiza web scraping. Aunque se han tomado medidas para que parezca una interacción humana (usando Selenium y pausas), un uso excesivo o muy rápido puede resultar en un bloqueo temporal de tu dirección IP por parte de Bing. Úsala con moderación. Los resultados son una aproximación y pueden no ser tan completos como los de herramientas de SEO de pago como Semrush o Ahrefs.
+### Salida
+
+Los resultados se guardarán en un archivo de texto nombrado `{dominio}_analysis.txt` dentro de la carpeta `recon`.
+
+## Nota Importante
+
+Esta herramienta realiza web scraping. Un uso excesivo o muy rápido puede resultar en un bloqueo temporal de tu dirección IP. Úsala con moderación.
